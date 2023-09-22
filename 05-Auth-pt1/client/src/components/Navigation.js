@@ -8,14 +8,15 @@ function Navigation({ updateUser }) {
   const [menu, setMenu] = useState(false)
   const history = useHistory()
 
- // 6.✅ Build a DELETE fetch request
-  //6.1 On a successful delete clear the user from state (updateUser is passed down from app via props) and redirect back to the authentication route
-// 7.✅ Head back to server/app.py to build a route that will keep our user logged in with sessions
-  //7.1 Let's make the login button only appear when a user is not logged in and the logout button appear if there is a user logged in
+ // 7.1✅ Build a DELETE fetch request
+  //7.2 On a successful delete clear the user from state (updateUser is passed down from app via props) and redirect back to the authentication route
+  //7.3✅ Head back to server/app.py to build a route that will keep our user logged in with sessions
+  //7.4 Let's make the login button only appear when a user is not logged in and the logout button appear if there is a user logged in
   const handleLogout = () => {
     
   }
 
+  // 7.5 Head back on over to App for the next steps!
     return (
         <Nav> 
           <NavH1>Flatiron Theater Company</NavH1>
