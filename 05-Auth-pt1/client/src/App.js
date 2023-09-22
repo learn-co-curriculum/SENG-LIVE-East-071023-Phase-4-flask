@@ -19,7 +19,7 @@ function App() {
   const history = useHistory()
 
   useEffect(() => {
-   
+  
     fetchProductions()
   },[])
 
@@ -27,15 +27,16 @@ function App() {
     fetch('/productions')
     .then(res => res.json())
     .then(setProductions)
-  )
-
-  const fetchUser = () => {
-    // 8.✅ Create a GET fetch that goes to '/authorized'
-      // If returned successfully set the user to state and fetch our productions
-      // else set the user in state to Null
-   
+    )
+    
+    const fetchUser = () => {
+      // 8.✅ Create a GET fetch that goes to '/authorized'
+      
+      // Question to the class... should a user be able to see productions if not logged in?
+        // If returned successfully set the user to state and fetch our productions
+        // else set the user in state to Null
 }
- 
+
   const addProduction = (production) => setProductions(current => [...current,production])
   const updateProduction = (updated_production) => setProductions(productions => productions.map(production => production.id == updated_production.id? updated_production : production))
   const deleteProduction = (deleted_production) => setProductions(productions => productions.filter((production) => production.id !== deleted_production.id) )
