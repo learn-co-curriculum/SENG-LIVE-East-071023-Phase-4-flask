@@ -53,7 +53,13 @@ function App() {
   return (
     <>
     <GlobalStyle />
-    <Navigation updateUser={updateUser}  handleEdit={handleEdit}/>
+    <Navigation updateUser={updateUser} user = { user } handleEdit={handleEdit}/>
+    { user ?
+      <center>
+        Welcome { user.username }
+      </center>
+      : null
+    }
       <Switch>
         <Route path='/productions/new'>
           <ProductionForm addProduction={addProduction}/>

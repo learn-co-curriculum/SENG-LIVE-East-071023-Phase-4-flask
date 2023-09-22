@@ -4,7 +4,7 @@ import styled from 'styled-components'
 import { useHistory } from 'react-router-dom'
 import { GiHamburgerMenu } from 'react-icons/gi'
 
-function Navigation({ updateUser }) {
+function Navigation({ updateUser, user }) {
   const [menu, setMenu] = useState(false)
   const history = useHistory()
 
@@ -13,7 +13,7 @@ function Navigation({ updateUser }) {
   //7.3✅ Head back to server/app.py to build a route that will keep our user logged in with sessions
   //7.4 Let's make the login button only appear when a user is not logged in and the logout button appear if there is a user logged in
   const handleLogout = () => {
-    
+    updateUser( null )
   }
 
   // 7.5 Head back on over to App for the next steps!
@@ -29,8 +29,14 @@ function Navigation({ updateUser }) {
             <li onClick={() => setMenu(!menu)}>x</li>
             <li><Link to='/productions/new'>New Production</Link></li>
             <li><Link to='/'> Home</Link></li>
-            <li><Link to='/authentication'> Login/Signup</Link></li>
-            <li onClick={handleLogout}> Logout </li>
+            { !user ?
+              <li><Link to='/authentication'> Login/Signup</Link></li> 
+              : null 
+            }
+            { user ?
+              <li onClick={handleLogout}> Logout </li>
+              : null
+            }
             </ul>
             }
           </Menu>

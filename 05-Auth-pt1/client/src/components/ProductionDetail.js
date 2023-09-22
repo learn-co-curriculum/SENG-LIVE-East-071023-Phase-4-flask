@@ -3,7 +3,7 @@ import {useEffect, useState} from 'react'
 import styled from 'styled-components'
 
 function ProductionDetail({handleEdit, deleteProduction}) {
-  const [production, setProduction] = useState({cast_members:[]})
+  const [production, setProduction] = useState({cast:[]})
   const [error, setError] = useState(null)
   //Student Challenge: GET One 
   const params = useParams()
@@ -25,7 +25,7 @@ function ProductionDetail({handleEdit, deleteProduction}) {
   }
 
   
-  const {id, title, genre, image,description, cast_members} = production 
+  const {id, title, genre, image,description, cast} = production 
   if(error) return <h2>{error}</h2>
   return (
       <CardDetail id={id}>
@@ -38,7 +38,7 @@ function ProductionDetail({handleEdit, deleteProduction}) {
               <p>{description}</p>
               <h2>Cast Members</h2>
               <ul>
-                {cast_members.map(cast => <li>{`${cast.role} : ${cast.name}`}</li>)}
+                {cast.map(cm => <li>{`${cm.role} : ${cm.name}`}</li>)}
               </ul>
             </div>
             <img src={image}/>

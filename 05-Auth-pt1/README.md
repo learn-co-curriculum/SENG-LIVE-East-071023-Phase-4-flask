@@ -1,4 +1,4 @@
-#  Authentication (Part 1)
+#  Authentication & Authorization
 ## Learning Goals
 * Discuss the Importance of Authentication in Web Apps
 * Ensure Students Understand the Difference between Identity Management (Authentication) and Access Management (Authorization)
