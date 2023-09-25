@@ -179,7 +179,7 @@ class ProductionByID(Resource):
                         setattr(prod, attr, request.form[attr])
 
                     prod.ongoing = bool(request.form['ongoing'])
-                    prod.budget = int(request.form['budget'])
+                    prod.budget = request.form['budget']
 
                     if prod.validation_errors :
                         raise ValueError
