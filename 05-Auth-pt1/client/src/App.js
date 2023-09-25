@@ -19,7 +19,7 @@ function App() {
   const history = useHistory()
 
   useEffect(() => {
-  
+    fetchUser()
     fetchProductions()
   },[])
 
@@ -29,13 +29,22 @@ function App() {
     .then(setProductions)
     )
     
-    const fetchUser = () => {
-      // 8.✅ Create a GET fetch that goes to '/authorized'
+  const fetchUser = () => {
+      // 8.✅ Create a GET fetch that goes to '/auto_login'
+      fetch( '/auto_login' )
+      .then( r => {
+        console.log( r )
+        if ( r.status === 200 ) {
+          r.json().then( setUser )
+        }
+      })
       
       // Question to the class... should a user be able to see productions if not logged in?
-        // If returned successfully set the user to state and fetch our productions
-        // else set the user in state to Null
-}
+      // If returned successfully set the user to state and fetch our productions
+      // else set the user in state to Null
+      
+      //8.1 Test out our route! Logout and try to visit other pages. Login and try to visit other pages again. Refresh the page and note that you are still logged in! 
+  }
 
   const addProduction = (production) => setProductions(current => [...current,production])
   const updateProduction = (updated_production) => setProductions(productions => productions.map(production => production.id == updated_production.id? updated_production : production))
@@ -48,7 +57,6 @@ function App() {
   const updateUser = (user) => setUser(user)
   // 9.✅ Return a second block of JSX
     // If the user is not in state return JSX and include <GlobalStyle /> <Navigation/> and  <Authentication updateUser={updateUser}/>
-    //9.1 Test out our route! Logout and try to visit other pages. Login and try to visit other pages again. Refresh the page and note that you are still logged in! 
   
   return (
     <>
@@ -56,7 +64,9 @@ function App() {
     <Navigation updateUser={updateUser} user = { user } handleEdit={handleEdit}/>
     { user ?
       <center>
-        Welcome { user.username }
+        <h1>
+          Welcome { user.username }
+        </h1>
       </center>
       : null
     }
@@ -68,7 +78,7 @@ function App() {
           <ProductionEdit updateProduction={updateProduction} productionEdit={productionEdit}/>
         </Route>
         <Route path='/productions/:id'>
-          <ProductionDetail handleEdit={handleEdit} deleteProduction={deleteProduction} />
+          <ProductionDetail user = { user } handleEdit={handleEdit} deleteProduction={deleteProduction} />
         </Route>
         <Route exact path='/authentication'>
           <Authentication updateUser={updateUser}/>

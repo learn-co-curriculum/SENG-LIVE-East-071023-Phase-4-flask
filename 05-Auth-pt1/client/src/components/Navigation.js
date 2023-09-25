@@ -14,6 +14,7 @@ function Navigation({ updateUser, user }) {
   //7.4 Let's make the login button only appear when a user is not logged in and the logout button appear if there is a user logged in
   const handleLogout = () => {
     updateUser( null )
+    fetch( '/logout', { method: 'DELETE' })
   }
 
   // 7.5 Head back on over to App for the next steps!
@@ -26,16 +27,18 @@ function Navigation({ updateUser, user }) {
               <GiHamburgerMenu size={30}/> 
             </div>:
             <ul>
-            <li onClick={() => setMenu(!menu)}>x</li>
-            <li><Link to='/productions/new'>New Production</Link></li>
+            <li onClick={() => setMenu(!menu)}>❌</li>
             <li><Link to='/'> Home</Link></li>
+            { user ?
+              <>
+                <li><Link to='/productions/new'>New Production</Link></li>
+                <li onClick={handleLogout}> Logout </li>
+              </>
+              : null
+            }
             { !user ?
               <li><Link to='/authentication'> Login/Signup</Link></li> 
               : null 
-            }
-            { user ?
-              <li onClick={handleLogout}> Logout </li>
-              : null
             }
             </ul>
             }

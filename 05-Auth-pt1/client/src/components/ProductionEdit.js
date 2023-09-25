@@ -1,71 +1,96 @@
-import React, {useState} from 'react'
+import React, { useState, useEffect } from 'react'
 import styled from 'styled-components'
-import { useHistory } from 'react-router-dom'
-import { useFormik } from "formik"
-import * as yup from "yup"
+import { useHistory, useParams } from 'react-router-dom'
 
 
-function ProductionForm({updateProduction, production_edit}) {
+function ProductionEdit({updateProductions, production_edit, productionsUrl}) {
+  const [ production, setProduction ] = useState(
+    {
+      title: '',
+      director: '',
+      budget: '',
+      description: '',
+      genre: '',
+      image: '',
+    }
+  )
+  const [ errors, setErrors ] = useState( null )
+
+  const params = useParams()
+
+  useEffect( () => {
+    if ( production_edit )
+      setProduction( production_edit )
+    else if ( params.id )
+      fetch( `/productions/${params.id}` )
+      .then( r => r.json() )
+      .then( setProduction )
+  }, [] )
+  
+  const updateFormState = event => {
+    const { name, value } = event.target
+    const newFormState = { ...production, [ name ] : value }
+    if ( name == 'budget' ) {
+      newFormState.budget = parseFloat( newFormState.budget )
+    }
+    setProduction( newFormState )
+  }
   const history = useHistory()
-    const formSchema = yup.object().shape({
-      title: yup.string().required("Must enter a title"),
-      budget: yup.number().positive()
-    })
-        const formik = useFormik({
-          initialValues: {
-            title: production_edit.title,
-            genre: production_edit.genre,
-            budget: production_edit.budget,
-            image: production_edit.image,
-            director:  production_edit.director,
-            description: production_edit.description,
-          },
-          validationSchema: formSchema,
-          onSubmit: (values) => {
-            fetch(`/productions/${production_edit.id}`,{
-              method:'PATCH',
-              headers:{
-                "Content-Type":"application/json"
-              },
-              body: JSON.stringify(values, null, 2)
-            })
-            .then(res => res.json())
-            .then(production => {
-              updateProduction(production)
-              history.push(`/productions/${production.id}`)
-            })
-          },
-        })
 
-    return (
-      <div className='App'>
-      {formik.errors&& Object.values(formik.errors).map(error => <h2>{error}</h2>)}
-      <Form onSubmit={formik.handleSubmit}>
+  const patchProduction = ( event ) => {
+    event.preventDefault()
+
+    const patchRequest = {
+      method: 'PATCH',
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json'
+      },
+      body: JSON.stringify( production )
+    }
+
+    fetch( `/productions/${ params.id }`, patchRequest )
+    .then( r => r.json() )
+    .then( updatedProd => {
+      if ( updatedProd.errors )
+        setErrors( updatedProd.errors )
+      else {
+        setErrors( null )
+        updateProductions( updatedProd )
+        history.push( `/productions/${ updatedProd.id }` )
+      }
+    })
+  }
+  
+  return (
+    <div className='App'>
+      { errors ? errors.map(error => <li style={{ color: 'red' }}>{error}</li>) : null }
+      <Form onSubmit={ patchProduction }>
         <label>Title </label>
-        <input type='text' name='title' value={formik.values.title} onChange={formik.handleChange}  />
+        <input type='text' name='title' value={ production.title } onChange={ updateFormState }  />
         
         <label> Genre</label>
-        <input type='text' name='genre' value={formik.values.genre} onChange={formik.handleChange}  />
+        <input type='text' name='genre' value= { production.genre } onChange={ updateFormState }  />
       
         <label>Budget</label>
-        <input type='number' name='budget' value={formik.values.budget} onChange={formik.handleChange} />
+        <input type='number' name='budget' value={ production.budget } onChange={ updateFormState } />
       
         <label>Image</label>
-        <input type='text' name='image' value={formik.values.image} onChange={formik.handleChange}  />
+        <input type='text' name='image' value= { production.image } onChange={ updateFormState }  />
       
         <label>Director</label>
-        <input type='text' name='director' value={formik.values.director} onChange={formik.handleChange}  />
+        <input type='text' name='director' value={ production.director } onChange={ updateFormState }  />
       
         <label>Description</label>
-        <textarea type='text' rows='4' cols='50' name='description'  value={formik.values.description} onChange={formik.handleChange} />
+        <textarea type='text' rows='4' cols='50' name='description'  value={ production.description } onChange={ updateFormState } />
       
         <input type='submit' />
       </Form> 
-      </div>
-    )
-  }
+    </div>
+  )
+}
   
-  export default ProductionForm
+export default ProductionEdit
 
   const Form = styled.form`
     display:flex;

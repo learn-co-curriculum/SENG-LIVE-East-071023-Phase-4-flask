@@ -2,7 +2,7 @@ import  {useParams, useHistory } from 'react-router-dom'
 import {useEffect, useState} from 'react'
 import styled from 'styled-components'
 
-function ProductionDetail({handleEdit, deleteProduction}) {
+function ProductionDetail({handleEdit, deleteProduction, user}) {
   const [production, setProduction] = useState({cast:[]})
   const [error, setError] = useState(null)
   //Student Challenge: GET One 
@@ -28,29 +28,34 @@ function ProductionDetail({handleEdit, deleteProduction}) {
   const {id, title, genre, image,description, cast} = production 
   if(error) return <h2>{error}</h2>
   return (
-      <CardDetail id={id}>
-        <h1>{title}</h1>
-          <div className='wrapper'>
-            <div>
-              <h3>Genre:</h3>
-              <p>{genre}</p>
-              <h3>Description:</h3>
-              <p>{description}</p>
-              <h2>Cast Members</h2>
-              <ul>
-                {cast.map(cm => <li>{`${cm.role} : ${cm.name}`}</li>)}
-              </ul>
-            </div>
-            <img src={image}/>
-          </div>
-      <button onClick={()=> handleEdit(production)} >Edit Production</button>
-      <button onClick={()=> handleDelete(production)} >Delete Production</button>
+    <CardDetail id={id}>
+      <h1>{title}</h1>
+      <div className='wrapper'>
+        <div>
+          <h3>Genre:</h3>
+          <p>{genre}</p>
+          <h3>Description:</h3>
+          <p>{description}</p>
+          <h2>Cast Members</h2>
+          <ul>
+            {cast.map(cm => <li>{`${cm.role} : ${cm.name}`}</li>)}
+          </ul>
+        </div>
+        <img src={image}/>
+      </div>
+      { user ?
+        <>
+        <button onClick={()=> handleEdit(production)} >Edit Production</button>
+        <button onClick={()=> handleDelete(production)} >Delete Production</button>
+        </> : null 
+      }
+    </CardDetail>
+  )
+}
 
-      </CardDetail>
-    )
-  }
-  
-  export default ProductionDetail
+export default ProductionDetail
+
+
   const CardDetail = styled.li`
     display:flex;
     flex-direction:column;

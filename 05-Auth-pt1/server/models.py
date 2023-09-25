@@ -26,13 +26,17 @@ class User(db.Model, SerializerMixin):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
     updated_at = db.Column(db.DateTime, onupdate=db.func.now())
 
-    username = db.Column( db.String, nullable = False )
+    username = db.Column( db.String, nullable = False, unique = True )
 
     # ✅ Add a column _password_hash
     _password_hash = db.Column( db.String, nullable = False )
         # Note: When an underscore is used, it's a sign that the variable or method is for internal use.
 
     serialize_rules = ( '-_password_hash', )
+
+    @classmethod
+    def find_by_id ( cls, id ) :
+        return User.query.filter_by( id = id ).first()
     
     validation_errors = []
 
@@ -66,9 +70,14 @@ class User(db.Model, SerializerMixin):
     @validates( 'username' )
     def validate_username ( self, key, username ) :
         if type( username ) is str and username :
-            return username
+            user = User.query.filter( User.username.like( f'{ username }' ) ).first()
+            if user :
+                self.validation_errors.append( 'Username already exists.' )
+            else :
+                return username
         else :
             self.validation_errors.append( 'Username cannot be blank.' )
+
 
     # ✅ Navigate to app
 

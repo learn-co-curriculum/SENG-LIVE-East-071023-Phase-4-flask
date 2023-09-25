@@ -85,21 +85,33 @@ class Login ( Resource ) :
 
         if user and user.authenticate( password ) :
             session[ 'user_id' ] = user.id
-            print( session[ 'user_id' ] )
+            # print( session[ 'user_id' ] )
             return user.to_dict(), 200
         else :
-            return { 'errors':['Invalid username or password.'] }, 404
+            return { 'errors':['Invalid username or password.'] }, 401
 
 api.add_resource( Login, '/login', endpoint = 'login' )
 
-# 4.✅ Create an AuthorizedSession class that inherits from Resource
-    # 4.1 use api.add_resource to add an authorized route
+
+# 4.✅ Create an AutoLogin class that inherits from Resource
+    # 4.1 use api.add_resource to add an automatic login route
     # 4.2 Create a get method
         # 4.2.1 Access the user_id from session with session.get
         # 4.2.2 Use the user id to query the user with a .filter
         # 4.2.3 If the user id is in sessions and found make a response to send to the client. else raise the Unauthorized exception
+class AutoLogin ( Resource ) :
+    def get ( self ) :
+        if session[ 'user_id' ] :
+            user = User.find_by_id( session[ 'user_id' ] )
+            if user :
+                return user.to_dict(), 200
+            else :
+                return { 'errors': ['User not found.'] }, 404
+        else :
+            return {}, 204
 
-# 5.✅ Head back to client/src/App.js to restrict access to our app!
+api.add_resource( AutoLogin, '/auto_login' )
+# 5.✅ Head back to client/src/App.js and try refreshing the page and checking if the user stays logged in...
 
 # 6.✅ Logout 
     # 6.1 Create a class Logout that inherits from Resource 
@@ -107,10 +119,11 @@ api.add_resource( Login, '/login', endpoint = 'login' )
     # 6.3 Clear the user id in session by setting the key to None
     # 6.4 create a 204 no content response to send back to the client
 class Logout ( Resource ) :
-    def delete ( ) :
+    def delete ( self ) :
         session[ 'user_id' ] = None
         return {}, 204
-
+    
+api.add_resource( Logout, '/logout' )
 
 # 7.✅ Navigate to client/src/components/Navigation.js to build the logout button!
 
@@ -120,28 +133,31 @@ class Productions(Resource):
         return Production.all(), 200
 
     def post(self):
-        rq = request.get_json()
-        try :
-            new_prod = Production(
-                title=rq['title'],
-                genre=rq['genre'],
-                budget=int(rq['budget']),
-                image=rq['image'],
-                director=rq['director'],
-                description=rq['description']
-            )
-        
-            if new_prod.validation_errors :
-                raise ValueError
+        if session[ 'user_id' ] :
+            rq = request.get_json()
+            try :
+                new_prod = Production(
+                    title=rq['title'],
+                    genre=rq['genre'],
+                    budget=int(rq['budget']),
+                    image=rq['image'],
+                    director=rq['director'],
+                    description=rq['description']
+                )
             
-            db.session.add( new_prod )
-            db.session.commit()
-            return new_prod.to_dict(), 201
-        
-        except :
-            errors = new_prod.validation_errors
-            new_prod.clear_validation_errors()
-            return { 'errors': errors }, 422
+                if new_prod.validation_errors :
+                    raise ValueError
+                
+                db.session.add( new_prod )
+                db.session.commit()
+                return new_prod.to_dict(), 201
+            
+            except :
+                errors = new_prod.validation_errors
+                new_prod.clear_validation_errors()
+                return { 'errors': errors }, 422
+        else :
+            return { 'errors': ['You must be logged in to do that action.'] }, 401
 
 api.add_resource(Productions, '/productions')
 
@@ -155,43 +171,54 @@ class ProductionByID(Resource):
             return { 'errors': ['Production not found.'] }, 404
 
     def patch(self, id):
-        prod = Production.find_by_id( id )
-        if prod:
-            try: 
-                for attr in request.form:
-                    setattr(prod, attr, request.form[attr])
+        if session[ 'user_id' ] :
+            prod = Production.find_by_id( id )
+            if prod:
+                try:
+                    for attr in request.form:
+                        setattr(prod, attr, request.form[attr])
 
-                prod.ongoing = bool(request.form['ongoing'])
-                prod.budget = int(request.form['budget'])
+                    prod.ongoing = bool(request.form['ongoing'])
+                    prod.budget = int(request.form['budget'])
 
-                if prod.validation_errors :
-                    raise ValueError
+                    if prod.validation_errors :
+                        raise ValueError
+                    
+                    db.session.add( prod )
+                    db.session.commit()
+                    return prod.to_dict(), 200
                 
-                db.session.add( prod )
-                db.session.commit()
-                return prod.to_dict(), 200
-            
-            except :
-                errors = prod.validation_errors
-                prod.clear_validation_errors()
-                return { 'errors': errors }, 422
+                except :
+                    errors = prod.validation_errors
+                    prod.clear_validation_errors()
+                    return { 'errors': errors }, 422
+            else :
+                return { 'errors': ['Production not found.'] }, 404
         else :
-            return { 'errors': ['Production not found.'] }, 404
+            return { 'errors': ['You must be logged in to do that action.'] }, 401
 
     def delete(self, id):
-        prod = Production.find_by_id( id )
-        if prod :
-            for cm in prod.cast :
-                db.session.delete( cm )
-            db.session.delete( prod )
-            db.session.commit()
-            return {}, 204
+        if session[ 'user_id' ] :
+            prod = Production.find_by_id( id )
+            if prod :
+                for cm in prod.cast :
+                    db.session.delete( cm )
+                db.session.delete( prod )
+                db.session.commit()
+                return {}, 204
+            else :
+                return { 'errors': ['Production not found.'] }, 404
         else :
-            return { 'errors': ['Production not found.'] }, 404
+            return { 'errors': ['You must be logged in to do that action.'] }, 401
 
 api.add_resource(ProductionByID, '/productions/<int:id>')
 
-
+class PostById ( Resource ) :
+    def patch ( self, id ) :
+        # check to see if there is a user and the post is there's
+        if session[ 'user_id' ] and session[ 'user_id' ] == post.user_id :
+            post = Post.query.get( id )
+        
 # @app.errorhandler(NotFound)
 # def handle_not_found(e):
 #     response = make_response(

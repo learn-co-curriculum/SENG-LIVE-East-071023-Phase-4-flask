@@ -1,72 +1,88 @@
 import React, {useState} from 'react'
 import styled from 'styled-components'
 import { useHistory } from 'react-router-dom'
-import { useFormik } from "formik"
-import * as yup from "yup"
+const initialState = {
+  title: '',
+  director: '',
+  budget: '',
+  description: '',
+  genre: '',
+  image: '',
+}
 
-function ProductionForm({addProduction}) {
+function ProductionForm({ addProduction }) {
+
+  const [ formState, setFormState ] = useState( initialState )
+  const [ errors, setErrors ] = useState( null )
+
+  const updateFormState = event => {
+    const { name, value } = event.target
+    const newFormState = { ...formState, [ name ] : value }
+    if ( name == 'budget' ) {
+      newFormState.budget = parseFloat( newFormState.budget )
+    }
+    setFormState( newFormState )
+  }
+  
   const history = useHistory()
-  const formSchema = yup.object().shape({
-    title: yup.string().required("Must enter a title"),
-    budget: yup.number().positive()
-  })
 
-  const formik = useFormik({
-    initialValues: {
-      title:'',
-      genre:'',
-      budget:'',
-      image:'',
-      director:'',
-      description:'',
-    },
-    validationSchema: formSchema,
-    onSubmit: (values) => {
-      fetch("/productions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(values, null, 2),
-      }).then((res) => {
-        if(res.ok) {
-          res.json().then(production => {
-            addProduction(production)
-            history.push(`/productions/${production.id}`)
-          })
-        }
-      })
-    },
-  })
-    return (
-      <div className='App'>
+  const createNewProduction = ( event ) => {
+    event.preventDefault()
 
-      <Form onSubmit={formik.handleSubmit}>
+    const postRequest = {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'accept': 'application/json'
+      },
+      body: JSON.stringify( formState )
+    }
+
+    fetch( '/productions', postRequest )
+    .then( r => r.json() )
+    .then( new_prod_data => {
+      if ( new_prod_data.errors ) {
+        setErrors( new_prod_data.errors )
+      }
+      else {
+        setErrors( null )
+        addProduction( new_prod_data )
+      }
+    })
+  }
+  
+  return (
+    <div className='App'>
+      { errors ? 
+        <div>
+          { errors.map( error => <li style={{ color: 'red' }}>{error}</li> ) }
+        </div> : null }
+      <Form onSubmit={ ( event ) => createNewProduction( event ) } >
         <label>Title </label>
-        <input type='text' name='title' value={formik.values.title} onChange={formik.handleChange} />
+        <input type='text' name='title' value = { formState.title } onChange={ updateFormState } />
         
         <label> Genre</label>
-        <input type='text' name='genre' value={formik.values.genre} onChange={formik.handleChange} />
+        <input type='text' name='genre' value = { formState.genre } onChange={ updateFormState } />
       
         <label>Budget</label>
-        <input type='number' name='budget' value={formik.values.budget} onChange={formik.handleChange} />
+        <input type='number' name='budget' value = { formState.budget } onChange={ updateFormState }/>
       
         <label>Image</label>
-        <input type='text' name='image' value={formik.values.image} onChange={formik.handleChange} />
+        <input type='text' name='image' value = { formState.image } onChange={ updateFormState } />
       
         <label>Director</label>
-        <input type='text' name='director' value={formik.values.director} onChange={formik.handleChange} />
+        <input type='text' name='director' value = { formState.director } onChange={ updateFormState }/>
       
         <label>Description</label>
-        <textarea type='text' rows='4' cols='50' name='description' value={formik.values.description} onChange={formik.handleChange} />
+        <textarea type='text' rows='4' cols='50' name='description' value = { formState.description } onChange={ updateFormState }/>
       
         <input type='submit' />
       </Form> 
-      </div>
-    )
-  }
+    </div>
+  )
+}
   
-  export default ProductionForm
+export default ProductionForm
 
   const Form = styled.form`
     display:flex;
